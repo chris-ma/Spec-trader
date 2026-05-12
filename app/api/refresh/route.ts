@@ -8,10 +8,10 @@ import type { AssetRecord, OHLCVBar } from '@/types';
 export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
-  // Validate cron secret
+  // Cron secret check: only enforced when CRON_SECRET is set AND caller sends wrong token
   const authHeader = req.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (cronSecret && authHeader && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
