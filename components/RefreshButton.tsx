@@ -10,11 +10,10 @@ export default function RefreshButton() {
     setState('loading');
     setMessage('');
     try {
-      const cronSecret = process.env.NEXT_PUBLIC_CRON_SECRET ?? '';
-      const res = await fetch('/api/refresh', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${cronSecret}` },
-      });
+      const cronSecret = process.env.NEXT_PUBLIC_CRON_SECRET;
+      const headers: Record<string, string> = {};
+      if (cronSecret) headers['Authorization'] = `Bearer ${cronSecret}`;
+      const res = await fetch('/api/refresh', { method: 'POST', headers });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? 'Refresh failed');
       setMessage(`Updated ${json.updated}, skipped ${json.skipped}${json.errors?.length ? `, ${json.errors.length} errors` : ''}`);
