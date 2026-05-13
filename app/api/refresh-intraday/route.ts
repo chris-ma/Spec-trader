@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { fetchIntradaySeries } from '@/lib/finnhub/fetcher';
+import { fetchIntradaySeries } from '@/lib/polygon/fetcher';
 import type { AssetRecord } from '@/types';
 
 export async function POST(req: NextRequest) {

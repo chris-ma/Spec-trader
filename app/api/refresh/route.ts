@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { fetchDailySeries } from '@/lib/finnhub/fetcher';
+import { fetchDailySeries } from '@/lib/polygon/fetcher';
 import { computeKronosSignal } from '@/lib/signals/engine';
 import type { AssetRecord, OHLCVBar } from '@/types';
 

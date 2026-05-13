@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const key = process.env.FINNHUB_API_KEY;
-  if (!key) return NextResponse.json({ error: 'FINNHUB_API_KEY not set' });
+  const key = process.env.POLYGON_API_KEY;
+  if (!key) return NextResponse.json({ error: 'POLYGON_API_KEY not set' });
 
-  const from = Math.floor(new Date('2024-01-01').getTime() / 1000);
-  const to = Math.floor(Date.now() / 1000);
-  const url = `https://finnhub.io/api/v1/stock/candle?symbol=AAPL&resolution=D&from=${from}&to=${to}&token=${key}`;
+  const url = `https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2024-01-01/2024-01-31?adjusted=true&sort=asc&limit=50&apiKey=${key}`;
 
   try {
     const res = await fetch(url, { cache: 'no-store' });
@@ -14,7 +12,9 @@ export async function GET() {
     return NextResponse.json({
       status: res.status,
       keyPrefix: key.slice(0, 8) + '...',
-      response: data,
+      resultsCount: data.resultsCount,
+      firstBar: data.results?.[0] ?? null,
+      polyStatus: data.status,
     });
   } catch (err) {
     return NextResponse.json({ error: String(err) });
