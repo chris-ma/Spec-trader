@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { fetchDailySeries, fetchFxDailySeries } from '@/lib/alpha-vantage/fetcher';
+import { fetchDailySeries, toYahooSymbol } from '@/lib/yahoo-finance/fetcher';
 import { delay } from '@/lib/alpha-vantage/rate-limiter';
 import { computeKronosSignal } from '@/lib/signals/engine';
 import type { AssetRecord, OHLCVBar } from '@/types';
@@ -46,17 +46,11 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      // Fetch OHLCV from Alpha Vantage
-      let bars: OHLCVBar[];
-      if (asset.av_function === 'FX_DAILY' && asset.av_from_sym && asset.av_to_sym) {
-        bars = await fetchFxDailySeries(asset.av_from_sym, asset.av_to_sym);
-      } else {
-        bars = await fetchDailySeries(asset.av_symbol);
-      }
+      const yfSymbol = toYahooSymbol(asset.ticker, asset.market);
+      const bars = await fetchDailySeries(yfSymbol);
 
       if (bars.length === 0) throw new Error('Empty bar data');
 
-      // Upsert market_data
       const marketRows = bars.map((b) => ({
         asset_id: asset.id,
         bar_interval: 'daily',
@@ -75,7 +69,6 @@ export async function POST(req: NextRequest) {
         ignoreDuplicates: false,
       });
 
-      // Load all stored bars for this asset (oldest first)
       const { data: storedBars } = await db
         .from('market_data')
         .select('bar_date,open,high,low,close,volume')
@@ -124,8 +117,8 @@ export async function POST(req: NextRequest) {
       errors.push(`${asset.ticker}: ${msg}`);
     }
 
-    // Respect AV rate limit: 5 requests/min
-    if (i < assets.length - 1) await delay(12000);
+    // Small courtesy delay between requests
+    if (i < assets.length - 1) await delay(200);
   }
 
   return NextResponse.json({ updated, skipped, errors });

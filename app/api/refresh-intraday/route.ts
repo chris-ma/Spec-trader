@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { fetchIntradaySeries } from '@/lib/alpha-vantage/fetcher';
+import { fetchIntradaySeries, toYahooSymbol } from '@/lib/yahoo-finance/fetcher';
 import type { AssetRecord } from '@/types';
 
 export async function POST(req: NextRequest) {
@@ -17,18 +17,6 @@ export async function POST(req: NextRequest) {
   if (!asset) return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
   const a = asset as AssetRecord;
 
-  // FX pairs don't support intraday on free tier — return daily bars resampled
-  if (a.av_function === 'FX_DAILY') {
-    const { data: dailyBars } = await db
-      .from('market_data')
-      .select('bar_date,open,high,low,close,volume,bar_time')
-      .eq('asset_id', a.id)
-      .eq('bar_interval', 'daily')
-      .order('bar_date', { ascending: false })
-      .limit(5);
-    return NextResponse.json({ bars: dailyBars ?? [], note: 'intraday_unavailable_for_fx' });
-  }
-
   // Check if intraday cache is fresh (< 60 min old)
   const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const { data: cached } = await db
@@ -43,7 +31,8 @@ export async function POST(req: NextRequest) {
 
   if (!isFresh) {
     try {
-      const bars = await fetchIntradaySeries(a.av_symbol);
+      const yfSymbol = toYahooSymbol(a.ticker, a.market);
+      const bars = await fetchIntradaySeries(yfSymbol);
       const rows = bars.map((b) => ({
         asset_id: a.id,
         bar_interval: '60min',
@@ -61,7 +50,7 @@ export async function POST(req: NextRequest) {
         ignoreDuplicates: false,
       });
     } catch {
-      // Fall through to return cached data even on fetch failure
+      // Fall through to return cached data on fetch failure
     }
   }
 
