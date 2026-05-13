@@ -6,14 +6,10 @@ export const metadata: Metadata = {
   description: "Kronos-inspired signal dashboard for global shares and commodities",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-slate-950 text-slate-200 antialiased">
+      <body className="min-h-screen antialiased" style={{ background: 'var(--bg)', color: 'var(--dark)' }}>
         {children}
       </body>
     </html>

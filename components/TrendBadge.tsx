@@ -3,16 +3,14 @@ interface Props {
 }
 
 export default function TrendBadge({ bias }: Props) {
-  const cls = {
-    bullish: 'text-emerald-400',
-    bearish: 'text-rose-400',
-    neutral: 'text-slate-400',
+  const cfg = {
+    bullish: { icon: '↑', label: 'Bullish', cls: 'text-emerald-600 font-semibold' },
+    bearish: { icon: '↓', label: 'Bearish', cls: 'text-rose-500 font-semibold' },
+    neutral: { icon: '→', label: 'Neutral', cls: 'text-zinc-400 font-medium' },
   }[bias ?? 'neutral'];
-  const icon = { bullish: '↑', bearish: '↓', neutral: '→' }[bias ?? 'neutral'];
-  const label = bias ? bias.charAt(0).toUpperCase() + bias.slice(1) : 'Neutral';
   return (
-    <span className={`${cls} font-medium text-sm`}>
-      {icon} {label}
+    <span className={`text-sm ${cfg.cls}`}>
+      {cfg.icon} {cfg.label}
     </span>
   );
 }

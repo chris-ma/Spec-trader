@@ -30,12 +30,16 @@ export default function RefreshButton() {
       <button
         onClick={handleRefresh}
         disabled={state === 'loading'}
-        className="px-4 py-1.5 text-sm font-medium rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="px-5 py-2 text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{
+          background: state === 'loading' ? '#E4E4E7' : 'var(--dark)',
+          color: state === 'loading' ? 'var(--muted)' : '#fff',
+        }}
       >
         {state === 'loading' ? 'Refreshing…' : 'Refresh Signals'}
       </button>
       {message && (
-        <span className={`text-xs ${state === 'error' ? 'text-rose-400' : 'text-slate-400'}`}>
+        <span className={`text-xs font-medium ${state === 'error' ? 'text-rose-500' : 'text-zinc-500'}`}>
           {message}
         </span>
       )}
