@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { fetchIntradaySeries, toYahooSymbol } from '@/lib/yahoo-finance/fetcher';
+import { fetchIntradaySeries } from '@/lib/finnhub/fetcher';
 import type { AssetRecord } from '@/types';
 
 export async function POST(req: NextRequest) {
@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
   if (!asset) return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
   const a = asset as AssetRecord;
 
-  // Check if intraday cache is fresh (< 60 min old)
   const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const { data: cached } = await db
     .from('market_data')
@@ -31,24 +30,25 @@ export async function POST(req: NextRequest) {
 
   if (!isFresh) {
     try {
-      const yfSymbol = toYahooSymbol(a.ticker, a.market);
-      const bars = await fetchIntradaySeries(yfSymbol);
-      const rows = bars.map((b) => ({
-        asset_id: a.id,
-        bar_interval: '60min',
-        bar_date: b.bar_date,
-        bar_time: b.bar_time ?? null,
-        open: b.open,
-        high: b.high,
-        low: b.low,
-        close: b.close,
-        volume: b.volume,
-        fetched_at: new Date().toISOString(),
-      }));
-      await db.from('market_data').upsert(rows, {
-        onConflict: 'asset_id,bar_interval,bar_date,bar_time',
-        ignoreDuplicates: false,
-      });
+      const bars = await fetchIntradaySeries(a.ticker, a.market);
+      if (bars.length > 0) {
+        const rows = bars.map((b) => ({
+          asset_id: a.id,
+          bar_interval: '60min',
+          bar_date: b.bar_date,
+          bar_time: b.bar_time ?? null,
+          open: b.open,
+          high: b.high,
+          low: b.low,
+          close: b.close,
+          volume: b.volume,
+          fetched_at: new Date().toISOString(),
+        }));
+        await db.from('market_data').upsert(rows, {
+          onConflict: 'asset_id,bar_interval,bar_date,bar_time',
+          ignoreDuplicates: false,
+        });
+      }
     } catch {
       // Fall through to return cached data on fetch failure
     }

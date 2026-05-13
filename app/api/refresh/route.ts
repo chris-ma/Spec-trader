@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { fetchDailySeries, toYahooSymbol } from '@/lib/yahoo-finance/fetcher';
-import { delay } from '@/lib/alpha-vantage/rate-limiter';
+import { fetchDailySeries } from '@/lib/finnhub/fetcher';
 import { computeKronosSignal } from '@/lib/signals/engine';
 import type { AssetRecord, OHLCVBar } from '@/types';
 
 export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
-  // Cron secret check: only enforced when CRON_SECRET is set AND caller sends wrong token
   const authHeader = req.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret && authHeader && authHeader !== `Bearer ${cronSecret}`) {
@@ -28,29 +26,39 @@ export async function POST(req: NextRequest) {
   const cutoff = new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString();
   const { data: recentSignals } = await db
     .from('signals')
-    .select('asset_id, computed_at')
+    .select('asset_id')
     .gt('computed_at', cutoff);
 
   const recentAssetIds = new Set((recentSignals ?? []).map((s) => s.asset_id));
+  const toProcess = (assets as AssetRecord[]).filter((a) => !recentAssetIds.has(a.id));
+  const skipped = assets.length - toProcess.length;
+
+  // Fetch all stale assets in parallel — Finnhub supports concurrent requests
+  const fetched = await Promise.allSettled(
+    toProcess.map(async (asset) => {
+      const bars = await fetchDailySeries(asset.ticker, asset.market);
+      return { asset, bars };
+    })
+  );
 
   let updated = 0;
-  let skipped = 0;
   const errors: string[] = [];
 
-  for (let i = 0; i < assets.length; i++) {
-    const asset = assets[i] as AssetRecord;
+  for (const result of fetched) {
+    if (result.status === 'rejected') {
+      const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      errors.push(msg);
+      continue;
+    }
 
-    if (recentAssetIds.has(asset.id)) {
-      skipped++;
+    const { asset, bars } = result.value;
+
+    if (bars.length === 0) {
+      errors.push(`${asset.ticker}: Empty bar data`);
       continue;
     }
 
     try {
-      const yfSymbol = toYahooSymbol(asset.ticker, asset.market);
-      const bars = await fetchDailySeries(yfSymbol);
-
-      if (bars.length === 0) throw new Error('Empty bar data');
-
       const marketRows = bars.map((b) => ({
         asset_id: asset.id,
         bar_interval: 'daily',
@@ -116,9 +124,6 @@ export async function POST(req: NextRequest) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`${asset.ticker}: ${msg}`);
     }
-
-    // Small courtesy delay between requests
-    if (i < assets.length - 1) await delay(200);
   }
 
   return NextResponse.json({ updated, skipped, errors });
