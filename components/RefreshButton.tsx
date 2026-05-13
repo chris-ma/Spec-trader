@@ -16,7 +16,8 @@ export default function RefreshButton() {
       const res = await fetch('/api/refresh', { method: 'POST', headers });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? 'Refresh failed');
-      setMessage(`Updated ${json.updated}, skipped ${json.skipped}${json.errors?.length ? `, ${json.errors.length} errors` : ''}`);
+      const firstError = json.errors?.length ? ` · ${json.errors[0]}` : '';
+      setMessage(`Updated ${json.updated}, skipped ${json.skipped}${json.errors?.length ? `, ${json.errors.length} errors${firstError}` : ''}`);
       setState('done');
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Error');
