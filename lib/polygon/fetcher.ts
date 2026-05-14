@@ -10,6 +10,27 @@ function toStooqSymbol(ticker: string, market: string): string {
   return ticker.toLowerCase() + '.us';
 }
 
+async function fetchBinanceDailySeries(ticker: string): Promise<OHLCVBar[]> {
+  const symbol = ticker.toUpperCase() + 'USDT';
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=1000`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Binance ${res.status} for ${symbol}`);
+  const raw: unknown[][] = await res.json();
+  if (!Array.isArray(raw) || raw.length === 0)
+    throw new Error(`No data from Binance for ${symbol}`);
+  return raw
+    .map((k) => ({
+      bar_date: new Date(k[0] as number).toISOString().split('T')[0],
+      open:   parseFloat(k[1] as string),
+      high:   parseFloat(k[2] as string),
+      low:    parseFloat(k[3] as string),
+      close:  parseFloat(k[4] as string),
+      volume: parseFloat(k[5] as string) || null,
+    }))
+    .filter((b) => b.bar_date && !isNaN(b.close))
+    .sort((a, b) => a.bar_date.localeCompare(b.bar_date));
+}
+
 function parseStooqCsv(text: string): OHLCVBar[] {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
@@ -31,6 +52,7 @@ function parseStooqCsv(text: string): OHLCVBar[] {
 }
 
 export async function fetchDailySeries(ticker: string, market: string): Promise<OHLCVBar[]> {
+  if (market === 'CRYPTO') return fetchBinanceDailySeries(ticker);
   const symbol = toStooqSymbol(ticker, market);
   const res = await fetch(`https://stooq.com/q/d/l/?s=${symbol}&i=d`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Stooq ${res.status} for ${symbol}`);

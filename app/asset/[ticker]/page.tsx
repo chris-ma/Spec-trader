@@ -6,6 +6,7 @@ import SignalBadge from '@/components/SignalBadge';
 import TrendBadge from '@/components/TrendBadge';
 import ConfidenceBar from '@/components/ConfidenceBar';
 import AssetChart from '@/components/AssetChart';
+import { decimalsByPrice } from '@/lib/utils/format';
 
 export const revalidate = 0;
 
@@ -60,7 +61,7 @@ export default async function AssetDetailPage({
 
   if (!asset) notFound();
 
-  const decimals = asset.asset_class === 'commodity_fx' ? 4 : 2;
+  const decimals = decimalsByPrice(signal?.last_price ?? null, asset.asset_class);
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">

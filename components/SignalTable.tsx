@@ -7,6 +7,7 @@ import FilterBar from './FilterBar';
 import SignalBadge from './SignalBadge';
 import TrendBadge from './TrendBadge';
 import ConfidenceBar from './ConfidenceBar';
+import { decimalsByPrice } from '@/lib/utils/format';
 
 type SortKey = keyof SignalRow | 'ticker' | 'name' | 'asset_class' | 'market';
 
@@ -30,8 +31,9 @@ function classBadge(cls: string) {
     equity: 'bg-blue-50 text-blue-600 border border-blue-100',
     etf: 'bg-violet-50 text-violet-600 border border-violet-100',
     commodity_fx: 'bg-amber-50 text-amber-700 border border-amber-100',
+    crypto: 'bg-orange-50 text-orange-600 border border-orange-100',
   };
-  const label: Record<string, string> = { equity: 'Equity', etf: 'ETF', commodity_fx: 'Cmdty/FX' };
+  const label: Record<string, string> = { equity: 'Equity', etf: 'ETF', commodity_fx: 'Cmdty/FX', crypto: 'Crypto' };
   return { style: map[cls] ?? 'bg-zinc-100 text-zinc-500', label: label[cls] ?? cls };
 }
 
@@ -136,7 +138,7 @@ export default function SignalTable({ initialData }: Props) {
             )}
             {rows.map((row) => {
               const { style: clsStyle, label: clsLabel } = classBadge(row.assets?.asset_class ?? '');
-              const decimals = row.assets?.asset_class === 'commodity_fx' ? 4 : 2;
+              const decimals = decimalsByPrice(row.last_price, row.assets?.asset_class ?? '');
               return (
                 <tr
                   key={row.asset_id}

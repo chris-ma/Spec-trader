@@ -32,12 +32,14 @@ export default function FilterBar({
         <option value="equity">Equity</option>
         <option value="etf">ETF</option>
         <option value="commodity_fx">Commodity / FX</option>
+        <option value="crypto">Crypto</option>
       </select>
       <select value={market} onChange={(e) => onMarket(e.target.value)} className={selectCls}>
         <option value="">All Markets</option>
         <option value="US">US</option>
         <option value="ASX">ASX</option>
         <option value="FOREX">FOREX</option>
+        <option value="CRYPTO">CRYPTO</option>
       </select>
       <select value={signal} onChange={(e) => onSignal(e.target.value)} className={selectCls}>
         <option value="">All Signals</option>

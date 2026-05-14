@@ -12,8 +12,8 @@ export interface AssetRecord {
   id: string;
   ticker: string;
   name: string;
-  asset_class: 'equity' | 'etf' | 'commodity_fx';
-  market: 'US' | 'ASX' | 'FOREX';
+  asset_class: 'equity' | 'etf' | 'commodity_fx' | 'crypto';
+  market: 'US' | 'ASX' | 'FOREX' | 'CRYPTO';
   av_function: string;
   av_symbol: string;
   av_from_sym: string | null;
@@ -67,8 +67,8 @@ export interface SignalResult {
 export interface AssetUniverseEntry {
   ticker: string;
   name: string;
-  asset_class: 'equity' | 'etf' | 'commodity_fx';
-  market: 'US' | 'ASX' | 'FOREX';
+  asset_class: 'equity' | 'etf' | 'commodity_fx' | 'crypto';
+  market: 'US' | 'ASX' | 'FOREX' | 'CRYPTO';
   av_function: string;
   av_symbol: string;
   av_from_sym?: string;
