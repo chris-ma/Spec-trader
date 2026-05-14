@@ -1,17 +1,6 @@
 import type { AssetUniverseEntry } from '@/types';
 
 export const ASSET_UNIVERSE: AssetUniverseEntry[] = [
-  // US Large Caps
-  { ticker: 'AAPL', name: 'Apple Inc.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'AAPL' },
-  { ticker: 'MSFT', name: 'Microsoft Corp.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'MSFT' },
-  { ticker: 'NVDA', name: 'NVIDIA Corp.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'NVDA' },
-  { ticker: 'AMZN', name: 'Amazon.com Inc.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'AMZN' },
-  { ticker: 'GOOGL', name: 'Alphabet Inc.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'GOOGL' },
-  { ticker: 'META', name: 'Meta Platforms Inc.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'META' },
-  { ticker: 'TSLA', name: 'Tesla Inc.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'TSLA' },
-  { ticker: 'JPM', name: 'JPMorgan Chase & Co.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'JPM' },
-  { ticker: 'XOM', name: 'Exxon Mobil Corp.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'XOM' },
-  { ticker: 'CVX', name: 'Chevron Corp.', asset_class: 'equity', market: 'US', av_function: 'TIME_SERIES_DAILY', av_symbol: 'CVX' },
   // ASX Blue Chips
   { ticker: 'BHP.AX', name: 'BHP Group Ltd.', asset_class: 'equity', market: 'ASX', av_function: 'TIME_SERIES_DAILY', av_symbol: 'BHP.AX' },
   { ticker: 'CBA.AX', name: 'Commonwealth Bank of Australia', asset_class: 'equity', market: 'ASX', av_function: 'TIME_SERIES_DAILY', av_symbol: 'CBA.AX' },
